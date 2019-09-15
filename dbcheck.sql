@@ -13,11 +13,12 @@ set long 999999999;
 set longchunksize 999999;
 set serveroutput on;
 set SQLBLANKLINES off;
+exec dbms_output.enabled()
 clear break compute;
 ttitle off;
 btitle off;
 
--- ç”ŸæˆæŠ¥å‘Šå
+-- Éú³É±¨¸æÃû
 column inst_num  heading "Inst Num"  new_value inst_num;
 column inst_name heading "Instance"  new_value inst_name format a12;
 column db_name   heading "DB Name"   new_value db_name   format a12;
@@ -71,38 +72,39 @@ prompt th {font:bold 8pt Arial,Helvetica,Geneva,sans-serif; color:white;backgrou
 prompt table { margin-left:0;border-collapse:separate;width:600;font:8pt Arial,Helvetica,sans-serif; border:0px;color:black; background:white;}
 prompt tr { border-collapse:separate;font:8pt Arial,Helvetica,sans-serif; border:0px;color:black; background:white;}
 prompt td { border-collapse:separate;font:8pt Arial,Helvetica,sans-serif; border:0px;color:black; background:#FFFFCC;}
+prompt p.desc {font: 8pt Arial,Helvetica,Geneva,sans-serif; color:Crimson; background:White;font-style:italic;}
 prompt </STYLE>
 prompt </head>
 prompt <body>
 
-prompt <h1 id='header'>æ•°æ®åº“å·¡æ£€æŠ¥å‘Š DB:&&db_name Inst:&&inst_name</h1>
+prompt <h1 id='header'>Êı¾İ¿âÑ²¼ì±¨¸æ DB:&&db_name Inst:&&inst_name</h1>
 
 --print table of contents
-prompt <h2>å¤§çº²</h2>
+prompt <h2>´ó¸Ù</h2>
 prompt <div class="contents">
 prompt <ul>
 prompt <li>
-prompt <a href="#dbinfo">æ•°æ®åº“åŸºæœ¬ä¿¡æ¯</a>
+prompt <a href="#dbinfo">Êı¾İ¿â»ù±¾ĞÅÏ¢</a>
 prompt </li>
 prompt <li>
-prompt <a href="#dbspace">æ•°æ®åº“ç©ºé—´ç®¡ç†</a>
+prompt <a href="#dbspace">Êı¾İ¿â¿Õ¼ä¹ÜÀí</a>
 prompt </li>
 prompt <li>
-prompt <a href="#dbschema">æ•°æ®åº“å¯¹è±¡ç®¡ç†</a>
+prompt <a href="#dbschema">Êı¾İ¿â¶ÔÏó¹ÜÀí</a>
 prompt </li>
 prompt <li>
-prompt <a href="#performance">æ€§èƒ½ç›¸å…³</a>
+prompt <a href="#performance">ĞÔÄÜÏà¹Ø</a>
 prompt </li>
 prompt </ul>
 prompt </div>
 
-prompt <h3 id='dbinfo'>æ•°æ®åº“åŸºæœ¬ä¿¡æ¯</h3>
+prompt <h3 id='dbinfo'>Êı¾İ¿â»ù±¾ĞÅÏ¢</h3>
 prompt <br>
 
 set markup html on spool on pre off entmap off;
-/* æ•°æ®åº“åŸºæœ¬ä¿¡æ¯ */
+/* Êı¾İ¿â»ù±¾ĞÅÏ¢ */
 --database info
-prompt <p>æ•°æ®åº“ä¿¡æ¯
+prompt <p>Êı¾İ¿âĞÅÏ¢
 col name for a9;
 col db_unique_name heading "UNAME" for a10;
 col database_role heading "DBROLE" for a10;
@@ -120,7 +122,7 @@ from v$database d
 ;
 
 -- instance info
-prompt <p>å®ä¾‹ä¿¡æ¯
+prompt <p>ÊµÀıĞÅÏ¢
 col instance_number heading "INST_NUM" for 99999999;
 col value heading "RAC" for a3;
 col startup_time heading "STARTUP" for a12;
@@ -133,14 +135,14 @@ select i.host_name,
        i.status,
        i.archiver,
        i.database_status,
-       decode(p.value, 'FALSE','No','Yes') value
+       decode(p.value, 'FALSE','No','Yes') "VALUE"
 from v$parameter p,
      v$instance i
 where p.name = 'cluster_database'
 ;
 
 --host info
-prompt <p>ä¸»æœºä¿¡æ¯
+prompt <p>Ö÷»úĞÅÏ¢
 col "MEMRORY(GB)" for 9999.99
 select
     (select HOST_NAME from v$instance ) "HOST_NAME",
@@ -153,7 +155,7 @@ from dual
 ;
 
 --database key configuration
-prompt <p>ä¸»è¦å‚æ•°
+prompt <p>Ö÷Òª²ÎÊı
 col name for a20;
 col value for a10;
 col display_value heading "VALUE" for a10;
@@ -178,9 +180,9 @@ select p.name,
   order by p.name
 ;
 
-/* æ•°æ®åº“èµ„æºç®¡ç† */
+/* Êı¾İ¿â×ÊÔ´¹ÜÀí */
 --database resource (process & session)
-prompt <p>å½“å‰ä¼šè¯ä¿¡æ¯
+prompt <p>µ±Ç°»á»°ĞÅÏ¢
 col status heading "CURRENT SESSION STATUS" for a25;
 col count for 999999;
 col MAX_VALUE heading "MAX VALUE" for 999999;
@@ -191,12 +193,38 @@ from v$session v
 where v.username is not null
 order by v.STATUS
 ;
+--Èç¹û»á»°Êı´óÓÚ²ÎÊıÖµµÄ60%
+set markup html off;
+declare
+scount number;
+smax number;
+begin
+  select count(v.status)
+    into scount
+    from v$session v
+   where v.username is not null;
+  select p.value
+    into smax
+    from v$parameter p
+   where p.name = 'sessions';
+  if scount/smax < 0.6 then
+    dbms_output.put_line('<p class="desc">µ±Ç°»á»°ÀûÓÃÂÊĞ¡ÓÚ°Ù·ÖÖ®60');
+  else
+    dbms_output.put_line('<p class="desc">µ±Ç°»á»°ÀûÓÃÂÊ´óÓÚ°Ù·ÖÖ®60');
+  end if;
+end;
+/
+set markup html on;
 
-/* æ•°æ®åº“ç©ºé—´ç®¡ç† */
-prompt <h3 id='dbspace'>æ•°æ®åº“ç©ºé—´ç®¡ç†</h3>
+/* Êı¾İ¿â¿Õ¼ä¹ÜÀí */
+prompt <h3 id='dbspace'>Êı¾İ¿â¿Õ¼ä¹ÜÀí</h3>
 --tablespace
-prompt <p>è¡¨ç©ºé—´ä¿¡æ¯
+prompt <p>±í¿Õ¼äĞÅÏ¢
 clear column;
+column tablespace_name heading "NAME";
+column "SIZE(G)" for 999999.999;
+column "USED(G)" for 999999.999;
+column "MAX(G)" for 999999.999;
 with e as (SELECT a.tablespace_name,
                   ROUND(a.bytes_alloc / 1024 / 1024)        "SIZE",
                   ROUND(NVL(b.bytes_free, 0) / 1024 / 1024) "FREE",
@@ -253,12 +281,12 @@ with e as (SELECT a.tablespace_name,
              AND f.tablespace_name = h.tablespace_name
            GROUP BY h.tablespace_name)
 select t.tablespace_name,
-       e."SIZE" "SIZE(M)",
-       e.USED "USED(M)",
+       e."SIZE"/1024 "SIZE(G)",
+       e.USED/1024 "USED(G)",
        e."USED%",
       --  e.FREE "FREE(M)",
       --  e."FREE%",
-       e.MAX "MAX(M)",
+       e.MAX/1024 "MAX(G)",
       --  t.block_size "BLOCK_SIZE(K)",
        t.status,
        t.contents,
@@ -270,26 +298,35 @@ from dba_tablespaces t
                          on e.tablespace_name = t.tablespace_name
 order by tablespace_name
 ;
+clear column;
+begin
+  dbms_output.put_line('<p class="desc">×¢ÒâÊ¹ÓÃÂÊ´óÓÚ°Ù·ÖÖ®80µÄ±í¿Õ¼ä');
+end;
+/
 
 --datafile
-prompt <p>æ•°æ®æ–‡ä»¶
-SELECT d.file_id,
+prompt <p>Êı¾İÎÄ¼ş
+SELECT d.tablespace_name,
        d.file_name,
-       ROUND(d.bytes/1024/1024/1024) AS size_gb,
-       ROUND(d.maxbytes/1024/1024/1024) AS max_size_gb,
+       ROUND(d.bytes/1024/1024/1024) AS "SIZE(G)",
+       ROUND(d.maxbytes/1024/1024/1024) AS "MAX(G)",
        d.autoextensible,
        d.status
 FROM   dba_data_files d
 union
-select t.FILE_ID,
+select t.tablespace_name,
        t.FILE_NAME,
-       ROUND(t.bytes/1024/1024/1024) AS size_gb,
-       ROUND(t.maxbytes/1024/1024/1024) AS max_size_gb,
+       ROUND(t.bytes/1024/1024/1024) AS "SIZE(G)",
+       ROUND(t.maxbytes/1024/1024/1024) AS "MAX(G)",
        t.autoextensible,
        t.status
 from DBA_TEMP_FILES t
-order by FILE_ID
+order by tablespace_name
 ;
+begin
+  dbms_output.put_line('<p class="desc">×¢ÒâÎ´Ê¹ÓÃ×Ô¶¯À©Õ¹µÄÊ±¼äÎÄ¼şµÄÊ¹ÓÃÇé¿ö');
+end;
+/
 
 --asmdisk
 -- declare
@@ -299,86 +336,98 @@ order by FILE_ID
 --     into isasm
 --     from v$asm_disk;
 --   if isasm > 0 then
---     dbms_output.put_line('<p>ASMç£ç›˜ä¿¡æ¯');
+--     dbms_output.put_line('<p>ASM´ÅÅÌĞÅÏ¢');
 --   end if;
 -- end;
-prompt <p>ASMç£ç›˜ä¿¡æ¯
-break on GROUP_NUMBER skip 1;
-compute sum label Total of TOTAL_MB on GROUP_NUMBER;
-compute sum label Total of FREE_MB on GROUP_NUMBER;
+prompt <p>ASM´ÅÅÌĞÅÏ¢
+break on GROUP_NAME skip 1;
+compute sum label "Total ->" of "TOTAL(G)" on GROUP_NAME;
+compute sum label "Total ->" of "FREE(G)" on GROUP_NAME;
+column "TOTAL(G)" for 999999.999;
+column "FREE(G)" for 999999.999;
 select g.NAME "GROUP_NAME",
        d.DISK_NUMBER,
        d.NAME,
        d.CREATE_DATE,
        d.MOUNT_DATE,
        d.STATE,
-       d.TOTAL_MB,
-       d.FREE_MB
+       d.TOTAL_MB/1024 "TOTAL(G)",
+       d.FREE_MB/1024 "FREE(G)"
 from V$ASM_DISK d, V$ASM_DISKGROUP g
 where d.GROUP_NUMBER = g.GROUP_NUMBER
 order by d.GROUP_NUMBER
 ;
 clear column compute;
 
---fast recovery areaä½¿ç”¨æƒ…å†µ
-prompt <p>é—ªå›åŒºä½¿ç”¨æƒ…å†µ
-select substr(name, 1, 30) name,
-        space_limit as quota,
-        space_used as used,
-        space_reclaimable as reclaimable,
-        number_of_files as files
+--fast recovery areaÊ¹ÓÃÇé¿ö
+prompt <p>ÉÁ»ØÇøÊ¹ÓÃÇé¿ö
+select substr(name, 1, 30) "NAME",
+        space_limit "QUOTA",
+        space_used "USED",
+        space_reclaimable "RECLAIMABLE",
+        number_of_files "FILES"
    from v$recovery_file_dest
 ;
 
 select * from V$FLASH_RECOVERY_AREA_USAGE
 ;
 
-prompt <h3 id='logfileinfo'>æ—¥å¿—ä¿¡æ¯</h3>
---è¿‘æœŸæ—¥å¿—åˆ‡æ¢æƒ…å†µ
-prompt <p>è¿‘æœŸæ—¥å¿—åˆ‡æ¢æƒ…å†µ
-SELECT SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH:MI:SS'),1,5) Day,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'00',1,0)) H00,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'01',1,0)) H01,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'02',1,0)) H02,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'03',1,0)) H03,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'04',1,0)) H04,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'05',1,0)) H05,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'06',1,0)) H06,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'07',1,0)) H07,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'08',1,0)) H08,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'09',1,0)) H09,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'10',1,0)) H10,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'11',1,0)) H11,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'12',1,0)) H12,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'13',1,0)) H13,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'14',1,0)) H14,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'15',1,0)) H15,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'16',1,0)) H16,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'17',1,0)) H17,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'18',1,0)) H18,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'19',1,0)) H19,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'20',1,0)) H20,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'21',1,0)) H21,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'22',1,0)) H22 ,
-       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'23',1,0)) H23,
-       COUNT(*) TOTAL
+prompt <h3 id='logfileinfo'>ÈÕÖ¾ĞÅÏ¢</h3>
+--½üÆÚÈÕÖ¾ÇĞ»»Çé¿ö
+prompt <p>½üÆÚÈÕÖ¾ÇĞ»»Çé¿ö
+SELECT SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH:MI:SS'),1,5) "DAY",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'00',1,0)) "00",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'01',1,0)) "01",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'02',1,0)) "02",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'03',1,0)) "03",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'04',1,0)) "04",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'05',1,0)) "05",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'06',1,0)) "06",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'07',1,0)) "07",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'08',1,0)) "08",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'09',1,0)) "09",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'10',1,0)) "10",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'11',1,0)) "11",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'12',1,0)) "12",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'13',1,0)) "13",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'14',1,0)) "14",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'15',1,0)) "15",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'16',1,0)) "16",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'17',1,0)) "17",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'18',1,0)) "18",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'19',1,0)) "19",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'20',1,0)) "20",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'21',1,0)) "21",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'22',1,0)) "22",
+       SUM(DECODE(SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH24:MI:SS'),10,2),'23',1,0)) "23",
+       COUNT(*) "TAOTAL"
 FROM v$log_history  a
    where first_time>=to_char(sysdate-11)
 GROUP BY SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH:MI:SS'),1,5)
 ORDER BY SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH:MI:SS'),1,5) DESC
 ;
+begin
+  dbms_output.put_line('<p class="desc">ÈÕÖ¾Ã¿Ğ¡Ê±ÇĞ»»´ÎÊıÔ½´óËµÃ÷¸ÃÊ±¼äÄÚÔ¼·±Ã¦');
+end;
+/
 
---æ—¥å¿—ç»„å¤§å°
-prompt <p>æ—¥å¿—ä¿¡æ¯
-select group#,bytes,status
+--ÈÕÖ¾×é´óĞ¡
+prompt <p>ÈÕÖ¾ĞÅÏ¢
+select group#,
+       bytes/1024/1204 "SIZE(G)",
+       members,
+       archived,
+       status
   from v$log
 ;
 
-/* å¯¹è±¡ç®¡ç† */
-prompt <h3 id='dbschema'>æ•°æ®åº“å¯¹è±¡ç®¡ç†</h3>
---è¡¨æœ‰å¸¦å¹¶è¡Œåº¦
-prompt <p>å¸¦å¹¶è¡Œåº¦è¡¨
-select t.owner, t.table_name, degree
+/* ¶ÔÏó¹ÜÀí */
+prompt <h3 id='dbschema'>Êı¾İ¿â¶ÔÏó¹ÜÀí</h3>
+--±íÓĞ´ø²¢ĞĞ¶È
+prompt <p>´ø²¢ĞĞ¶È±í
+select t.owner,
+       t.table_name,
+       degree
   from dba_tables t
 where  trim(t.degree) <>'1'
    and trim(t.degree)<>'0'
@@ -387,9 +436,13 @@ where  trim(t.degree) <>'1'
    and owner not like 'WK%'
 ;
 
---ç´¢å¼•æœ‰å¸¦å¹¶è¡Œåº¦
-prompt <p>å¸¦å¹¶è¡Œåº¦ç´¢å¼•
-select t.owner, t.table_name, index_name, degree, status
+--Ë÷ÒıÓĞ´ø²¢ĞĞ¶È
+prompt <p>´ø²¢ĞĞ¶ÈË÷Òı
+select t.owner,
+       t.table_name,
+       index_name,
+       degree,
+       status
   from dba_indexes t
 where  trim(t.degree) <>'1'
    and trim(t.degree)<>'0'
@@ -398,11 +451,11 @@ where  trim(t.degree) <>'1'
    and owner not like 'WK%'
 ;
 
---å¤±æ•ˆç´¢å¼•
-prompt <p>å¤±æ•ˆç´¢å¼•
+--Ê§Ğ§Ë÷Òı
+prompt <p>Ê§Ğ§Ë÷Òı
 select t.index_name,
        t.table_name,
-       blevel,
+       t.blevel,
        t.num_rows,
        t.leaf_blocks,
        t.distinct_keys
@@ -423,8 +476,8 @@ where t1.index_name = t2.index_name
    and t1.STATUS = 'UNUSABLE'
 ;
 
---å¤±æ•ˆå¯¹è±¡
-prompt <p>å¤±æ•ˆå¯¹è±¡
+--Ê§Ğ§¶ÔÏó
+prompt <p>Ê§Ğ§¶ÔÏó
 select t.owner,
        t.object_type,
        t.object_name
@@ -433,8 +486,8 @@ select t.owner,
 order by 1, 2
 ;
 
---ä½å›¾ç´¢å¼•å’Œå‡½æ•°ç´¢å¼•ã€åå‘é”®ç´¢å¼•
-prompt <p>ä½å›¾ç´¢å¼•ã€å‡½æ•°ç´¢å¼•ã€åå‘ç´¢å¼•
+--Î»Í¼Ë÷ÒıºÍº¯ÊıË÷Òı¡¢·´Ïò¼üË÷Òı
+prompt <p>Î»Í¼Ë÷Òı¡¢º¯ÊıË÷Òı¡¢·´ÏòË÷Òı
 select t.owner,
        t.table_name,
        t.index_name,
@@ -449,9 +502,12 @@ select t.owner,
    and owner not like 'WK%'
 ;
 
---ç»„åˆç´¢å¼•ç»„åˆåˆ—è¶…è¿‡4ä¸ªçš„
-prompt <p>è¶…è¿‡4ä¸ªåˆ—çš„ç»„åˆç´¢å¼•
-select table_owner,table_name, index_name, count(*)
+--×éºÏË÷Òı×éºÏÁĞ³¬¹ı4¸öµÄ
+prompt <p>³¬¹ı4¸öÁĞµÄ×éºÏË÷Òı
+select table_owner,
+       table_name,
+       index_name,
+       count(*)
   from dba_ind_columns
 where  table_owner not in ('SYSTEM','SYSMAN','SYS','CTXSYS','MDSYS','OLAPSYS','WMSYS','EXFSYS','LBACSYS','WKSYS','XDB','ORDSYS','DBSNMP','OUTLN','TSMSYS')
    and table_owner not like 'FLOWS%'
@@ -461,42 +517,47 @@ having count(*) >= 4
  order by count(*) desc
 ;
 
---ç´¢å¼•ä¸ªæ•°å­—è¶…è¿‡5ä¸ªçš„è¡¨
-prompt <p>è¶…è¿‡5ä¸ªç´¢å¼•çš„è¡¨
-select owner,table_name, count(*) cnt
+--Ë÷Òı¸öÊı×Ö³¬¹ı5¸öµÄ±í
+prompt <p>³¬¹ı5¸öË÷ÒıµÄ±í
+select owner,
+       table_name,
+       count(*) "COUNT"
   from dba_indexes
 where  owner not in ('SYSTEM','SYSMAN','SYS','CTXSYS','MDSYS','OLAPSYS','WMSYS','EXFSYS','LBACSYS','WKSYS','XDB','ORDSYS','DBSNMP','OUTLN','TSMSYS')
    and owner not like 'FLOWS%'
    and owner not like 'WK%'
  group by owner,table_name
 having count(*) >= 5
-order by cnt desc
+order by "COUNT" desc
 ;
 
---å“ªäº›å¤§è¡¨ä»æœªå»ºè¿‡ç´¢å¼•
-prompt <p>æœªå»ºç´¢å¼•çš„å¤§è¡¨
+--ÄÄĞ©´ó±í´ÓÎ´½¨¹ıË÷Òı
+prompt <p>Î´½¨Ë÷ÒıµÄ´ó±í
 select segment_name,
-       bytes / 1024 / 1024 / 1024 "GB",
+       bytes / 1024 / 1024 / 1024 "SIZE(G)",
        blocks,
        tablespace_name
   from dba_segments
  where segment_type = 'TABLE'
    and segment_name not in (select table_name from dba_indexes)
    and bytes / 1024 / 1024 / 1024 >= 0.5
- order by GB desc
+ order by "SIZE(G)" desc
 ;
-select segment_name, sum(bytes) / 1024 / 1024 / 1024 "GB", sum(blocks)
+select segment_name,
+       sum(bytes) / 1024 / 1024 / 1024 "SIZE(G)",
+       sum(blocks) "BLOCKS"
   from dba_segments
  where segment_type = 'TABLE PARTITION'
    and segment_name not in (select table_name from dba_indexes)
  group by segment_name
 having sum(bytes) / 1024 / 1024 / 1024 >= 0.5
- order by GB desc
+ order by "SIZE(G)" desc
 ;
 
---å“ªäº›è¡¨çš„ç»„åˆç´¢å¼•ä¸å•åˆ—ç´¢å¼•å­˜åœ¨äº¤å‰çš„æƒ…å†µ
-prompt <p>ç»„åˆç´¢å¼•ä¸å•åˆ—ç´¢å¼•äº¤å‰çš„è¡¨
-select table_name, trunc(count(distinct(column_name)) / count(*),2) cross_idx_rate
+--ÄÄĞ©±íµÄ×éºÏË÷ÒıÓëµ¥ÁĞË÷Òı´æÔÚ½»²æµÄÇé¿ö
+prompt <p>×éºÏË÷ÒıÓëµ¥ÁĞË÷Òı½»²æµÄ±í
+select table_name,
+       trunc(count(distinct(column_name)) / count(*),2) "CROSS_IDX_RATE"
   from dba_ind_columns
  where table_owner not in ('SYSTEM','SYSMAN','SYS','CTXSYS','MDSYS','OLAPSYS','WMSYS','EXFSYS','LBACSYS','WKSYS','XDB','ORDSYS','DBSNMP','OUTLN','TSMSYS')
    and table_owner not like 'FLOWS%'
@@ -506,8 +567,8 @@ having count(distinct(column_name)) / count(*) < 1
 order by cross_idx_rate desc
 ;
 
---å“ªäº›å¯¹è±¡å»ºåœ¨ç³»ç»Ÿè¡¨ç©ºé—´ä¸Š
-prompt <p>å»ºç«‹åœ¨ç³»ç»Ÿè¡¨ç©ºé—´çš„å¯¹è±¡
+--ÄÄĞ©¶ÔÏó½¨ÔÚÏµÍ³±í¿Õ¼äÉÏ
+prompt <p>½¨Á¢ÔÚÏµÍ³±í¿Õ¼äµÄ¶ÔÏó
 select * from (
 select owner, segment_name, tablespace_name, count(*) num
   from dba_segments
@@ -518,8 +579,8 @@ where  owner not in ('SYSTEM','SYSMAN','SYS','CTXSYS','MDSYS','OLAPSYS','WMSYS',
    and owner not like 'WK%'
 ;
 
---TOP 10 å¯¹è±¡å¤§å°
-prompt <p>å¯¹è±¡å¤§å°Top 10
+--TOP 10 ¶ÔÏó´óĞ¡
+prompt <p>¶ÔÏó´óĞ¡Top 10
 select *
   from (select owner,
                segment_name,
@@ -531,8 +592,8 @@ select *
 where rownum <= 10
 ;
 
---å›æ”¶ç«™æƒ…å†µ(å¤§å°åŠæ•°é‡ï¼‰
-prompt <p>å›æ”¶ç«™ä¿¡æ¯
+--»ØÊÕÕ¾Çé¿ö(´óĞ¡¼°ÊıÁ¿£©
+prompt <p>»ØÊÕÕ¾ĞÅÏ¢
 select *
   from (select SUM(BYTES) / 1024 / 1024 / 1024 as recyb_size
           from DBA_SEGMENTS
@@ -540,9 +601,9 @@ select *
        (select count(*) as recyb_cnt from dba_recyclebin)
 ;
 
---æŸ¥è°å ç”¨äº†undoè¡¨ç©ºé—´
-prompt <p>UNDOè¡¨ç©ºé—´ä½¿ç”¨æƒ…å†µ
-SELECT r.name "roll_segment_name", rssize/1024/1024/1024 "RSSize(G)",
+--²éË­Õ¼ÓÃÁËundo±í¿Õ¼ä
+prompt <p>UNDO±í¿Õ¼äÊ¹ÓÃÇé¿ö
+SELECT r.name "roll_segment_name", rssize/1024/1024/1024 "RSSIZE(G)",
        s.sid,
        s.serial#,
        s.username,
@@ -551,7 +612,7 @@ SELECT r.name "roll_segment_name", rssize/1024/1024/1024 "RSSize(G)",
        s.SQL_ADDRESS,
        s.MACHINE,
        s.MODULE,
-       substr(s.program, 1, 78) program,
+       substr(s.program, 1, 78) "PROGRAM",
        r.usn,
        hwmsize/1024/1024/1024, shrinks ,xacts
 FROM sys.v_$session s,sys.v_$transaction t,sys.v_$rollname r, v$rollstat rs
@@ -559,10 +620,10 @@ WHERE t.addr = s.taddr and t.xidusn = r.usn and r.usn=rs.USN
 Order by rssize desc
 ;
 
---æŸ¥è°å ç”¨äº†tempè¡¨ç©ºé—´
-prompt <p>TEMPè¡¨ç©ºé—´ä½¿ç”¨æƒ…å†µ
+--²éË­Õ¼ÓÃÁËtemp±í¿Õ¼ä
+prompt <p>TEMP±í¿Õ¼äÊ¹ÓÃÇé¿ö
 select sql.sql_id,
-       t.Blocks * 16 / 1024 / 1024,
+       t.Blocks * 16 / 1024 / 1024 "BLOCKS",
        s.USERNAME,
        s.SCHEMANAME,
        t.tablespace,
@@ -579,12 +640,12 @@ where t.SESSION_ADDR = s.SADDR
   and t.SQLHASH=sql.HASH_VALUE
 ;
 
---è¡¨å¤§å°è¶…è¿‡10GBæœªå»ºåˆ†åŒºçš„
-prompt <p>å¤§äº10Gæœªå»ºåˆ†åŒºçš„è¡¨
+--±í´óĞ¡³¬¹ı10GBÎ´½¨·ÖÇøµÄ
+prompt <p>´óÓÚ10GÎ´½¨·ÖÇøµÄ±í
 select owner,
        segment_name,
        segment_type,
-       round(sum(bytes) / 1024 / 1024 / 1024,2) object_size
+       round(sum(bytes) / 1024 / 1024 / 1024,2) "SIZE(G)"
   from dba_segments
 where segment_type = 'TABLE'
   and bytes > 10*1024*1024*1024
@@ -592,8 +653,8 @@ group by owner, segment_name, segment_type
 order by object_size desc
 ;
 
---åˆ†åŒºæœ€å¤šçš„å‰10ä¸ªå¯¹è±¡
-prompt <p>åˆ†åŒºæœ€å¤šçš„å¯¹è±¡Top 10
+--·ÖÇø×î¶àµÄÇ°10¸ö¶ÔÏó
+prompt <p>·ÖÇø×î¶àµÄ¶ÔÏóTop 10
 select *
   from (select table_owner, table_name, count(*) cnt
           from dba_tab_partitions
@@ -602,8 +663,8 @@ select *
 where rownum <= 10
 ;
 
---åˆ†åŒºä¸å‡åŒ€çš„è¡¨
-prompt <p>åˆ†åŒºä¸å‡åŒ€è¡¨
+--·ÖÇø²»¾ùÔÈµÄ±í
+prompt <p>·ÖÇø²»¾ùÔÈ±í
 select *
   from (select table_owner,
                table_name,
@@ -622,8 +683,8 @@ select *
 where rate > 5
 ;
 
---åˆ—æ•°é‡è¶…è¿‡100ä¸ªæˆ–å°äº2çš„è¡¨
-prompt <p>è¶…è¿‡100å’Œå°äº2ä¸ªåˆ—çš„è¡¨
+--ÁĞÊıÁ¿³¬¹ı100¸ö»òĞ¡ÓÚ2µÄ±í
+prompt <p>³¬¹ı100ºÍĞ¡ÓÚ2¸öÁĞµÄ±í
 select *
   from (select owner, table_name, count(*) col_count
           from dba_tab_cols
@@ -634,8 +695,8 @@ select *
  and  owner not like 'FLOWS%'
 ;
 
---è¡¨å±æ€§æ˜¯nologgingçš„
-prompt <p>nologgingè¡¨
+--±íÊôĞÔÊÇnologgingµÄ
+prompt <p>nologging±í
 select owner, table_name, tablespace_name, logging
   from dba_tables
  where logging = 'NO'
@@ -643,8 +704,8 @@ select owner, table_name, tablespace_name, logging
  and  owner not like 'FLOWS%'
 ;
 
---è¡¨å±æ€§å«COMPRESSIONçš„
-prompt <p>compressionè¡¨
+--±íÊôĞÔº¬COMPRESSIONµÄ
+prompt <p>compression±í
 select owner, table_name, tablespace_name, COMPRESSION
   from dba_tables
  where COMPRESSION = 'ENABLED'
@@ -652,8 +713,8 @@ select owner, table_name, tablespace_name, COMPRESSION
  and  owner not like 'FLOWS%'
 ;
 
---ç´¢å¼•å±æ€§å«COMPRESSIONçš„
-prompt <p>compressionç´¢å¼•
+--Ë÷ÒıÊôĞÔº¬COMPRESSIONµÄ
+prompt <p>compressionË÷Òı
 select owner, index_name, table_name, COMPRESSION
   from dba_indexes
  where COMPRESSION = 'ENABLED'
@@ -661,8 +722,8 @@ select owner, index_name, table_name, COMPRESSION
  and  owner not like 'FLOWS%'
 ;
 
---å°†å¤–é”®æœªå»ºç´¢å¼•çš„æƒ…å†µåˆ—å‡º
-prompt <p>å¤–å¥æœªå»ºç´¢å¼•
+--½«Íâ¼üÎ´½¨Ë÷ÒıµÄÇé¿öÁĞ³ö
+prompt <p>Íâ½¡Î´½¨Ë÷Òı
 select *
   from (select pk.owner PK_OWNER,
                pk.constraint_name PK_NAME,
@@ -712,10 +773,10 @@ select *
  order by FK_OWNER ASC
 ;
 
-/* æ€§èƒ½ç›¸å…³ */
-prompt <h3 id='performance'>æ€§èƒ½ç›¸å…³</h3>
---é€»è¾‘è¯»æœ€å¤š
-prompt <p>é€»è¾‘è¯»SQL Top 10
+/* ĞÔÄÜÏà¹Ø */
+prompt <h3 id='performance'>ĞÔÄÜÏà¹Ø</h3>
+--Âß¼­¶Á×î¶à
+prompt <p>Âß¼­¶ÁSQL Top 10
 select *
   from (select sql_id,
                s.EXECUTIONS,
@@ -729,8 +790,8 @@ select *
 where rownum <= 10
 ;
 
---ç‰©ç†è¯»æœ€å¤š
-prompt <p>ç‰©ç†è¯»SQL Top 10
+--ÎïÀí¶Á×î¶à
+prompt <p>ÎïÀí¶ÁSQL Top 10
 select *
   from (select sql_id,
        s.EXECUTIONS,
@@ -745,8 +806,8 @@ order by disk_reads desc)
 where rownum<=10
 ;
 
---æ‰§è¡Œæ¬¡æ•°æœ€å¤š
-prompt <p>æ‰§è¡Œæ¬¡æ•°SQL Top 10
+--Ö´ĞĞ´ÎÊı×î¶à
+prompt <p>Ö´ĞĞ´ÎÊıSQL Top 10
 select *
   from (select sql_id,
                s.EXECUTIONS,
@@ -760,8 +821,8 @@ select *
 where rownum <= 10
 ;
 
---è§£ææ¬¡æ•°æœ€å¤š
-prompt <p>è§£ææ¬¡æ•°SQL Top 10
+--½âÎö´ÎÊı×î¶à
+prompt <p>½âÎö´ÎÊıSQL Top 10
 select *
   from (select sql_id,
                s.EXECUTIONS,
@@ -775,8 +836,8 @@ select *
 where rownum <= 10
 ;
 
---ç£ç›˜æ’åºæœ€å¤š
-prompt <p>ç£ç›˜æ’åºå¤§äº200
+--´ÅÅÌÅÅĞò×î¶à
+prompt <p>´ÅÅÌÅÅĞò´óÓÚ200
 select sess.username, sql.address, sort1.blocks
   from v$session sess, v$sqlarea sql, v$sort_usage sort1
 where sess.serial# = sort1.session_num
@@ -786,14 +847,14 @@ where sess.serial# = sort1.session_num
 order by sort1.blocks desc
 ;
 
---æŸ¥è¯¢å…±äº«å†…å­˜å æœ‰ç‡
-prompt <p>å…±äº«å†…å­˜å æœ‰ç‡
+--²éÑ¯¹²ÏíÄÚ´æÕ¼ÓĞÂÊ
+prompt <p>¹²ÏíÄÚ´æÕ¼ÓĞÂÊ
 select count(*),round(sum(sharable_mem)/1024/1024,2)
   from v$db_object_cache a
 ;
 
---æ£€æŸ¥ç»Ÿè®¡ä¿¡æ¯æ˜¯å¦è¢«æ”¶é›†
-prompt <p>ç»Ÿè®¡ä¿¡æ¯æ”¶é›†æƒ…å†µ
+--¼ì²éÍ³¼ÆĞÅÏ¢ÊÇ·ñ±»ÊÕ¼¯
+prompt <p>Í³¼ÆĞÅÏ¢ÊÕ¼¯Çé¿ö
 select t.job_name,t.program_name,t.state,t.enabled
   from dba_scheduler_jobs t
 where job_name = 'GATHER_STATS_JOB'
@@ -805,8 +866,8 @@ select window_next_time,autotask_status
   from DBA_AUTOTASK_WINDOW_CLIENTS
 ;
 
---æ£€æŸ¥å“ªäº›æœªè¢«æ”¶é›†æˆ–è€…å¾ˆä¹…æ²¡æ”¶é›†
-prompt <p>ç»Ÿè®¡ä¿¡æ¯æœªæ”¶é›†æˆ–é•¿æ—¶é—´æœªæ›´æ–°
+--¼ì²éÄÄĞ©Î´±»ÊÕ¼¯»òÕßºÜ¾ÃÃ»ÊÕ¼¯
+prompt <p>Í³¼ÆĞÅÏ¢Î´ÊÕ¼¯»ò³¤Ê±¼äÎ´¸üĞÂ
 select owner, count(*)
   from dba_tab_statistics t
 where (t.last_analyzed is null or t.last_analyzed < sysdate - 100)
@@ -815,8 +876,8 @@ group by owner
 order by owner
 ;
 
---è¢«æ”¶é›†ç»Ÿè®¡ä¿¡æ¯çš„ä¸´æ—¶è¡¨
-prompt <p>æ”¶é›†ç»Ÿè®¡ä¿¡æ¯çš„ä¸´æ—¶è¡¨
+--±»ÊÕ¼¯Í³¼ÆĞÅÏ¢µÄÁÙÊ±±í
+prompt <p>ÊÕ¼¯Í³¼ÆĞÅÏ¢µÄÁÙÊ±±í
 select owner, table_name, t.last_analyzed, t.num_rows, t.blocks
   from dba_tables t
 where t.temporary = 'Y'
