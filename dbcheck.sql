@@ -87,13 +87,13 @@ prompt <li>
 prompt <a href="#dbinfo">数据库基本信息</a>
 prompt </li>
 prompt <li>
-prompt <a href="#dbspace">数据库空间管理</a>
+prompt <a href="#dbspace">数据库空间信息</a>
 prompt </li>
 prompt <li>
 prompt <a href="#logfileinfo">日志信息</a>
 prompt </li>
 prompt <li>
-prompt <a href="#dbschema">数据库对象管理</a>
+prompt <a href="#dbschema">数据库对象信息</a>
 prompt </li>
 prompt <li>
 prompt <a href="#performance">性能相关</a>
@@ -183,7 +183,7 @@ select p.name,
   order by p.name
 ;
 
-/* 数据库资源管理 */
+/* 数据库资源信息 */
 --database resource (process & session)
 prompt <p>当前会话信息
 col status heading "CURRENT SESSION STATUS" for a25;
@@ -219,8 +219,8 @@ end;
 /
 set markup html on;
 
-/* 数据库空间管理 */
-prompt <h3 id='dbspace'>数据库空间管理</h3>
+/* 数据库空间信息 */
+prompt <h3 id='dbspace'>数据库空间信息</h3>
 --tablespace
 prompt <p>表空间信息
 clear column;
@@ -425,8 +425,8 @@ select group#,
   from v$log
 ;
 
-/* 对象管理 */
-prompt <h3 id='dbschema'>数据库对象管理</h3>
+/* 对象信息 */
+prompt <h3 id='dbschema'>数据库对象信息</h3>
 --表有带并行度
 prompt <p>带并行度表
 select t.owner,
