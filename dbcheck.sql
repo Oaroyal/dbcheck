@@ -910,6 +910,8 @@ prompt </body>
 prompt <html>
 spool off;
 
+
+clear column compute;
 /* 获取awr、addm、ash */
 --以下不使用html标签
 SET markup html off spool ON pre off entmap off
@@ -994,45 +996,45 @@ spool off;
 
 
 --最新addm报告
-column addmfile_name new_value addmfile
-select 'addmrpt_' || to_char(&&awr_inst_num) || '_' || to_char(&&awr_begin_snap) || '_' || to_char(&&awr_end_snap) addmfile_name from dual;
-set serveroutput on
-spool &&addmfile..txt
-declare
-  id          number;
-  name		  varchar2(200) := '';
-  descr       varchar2(500) := '';
-  addmrpt     clob;
-  v_ErrorCode number;
-BEGIN
-  name := '&&addmfile';
-  begin
-    dbms_advisor.create_task('ADDM', id, name, descr, null);
-    dbms_advisor.set_task_parameter(name, 'START_SNAPSHOT', &&awr_begin_snap);
-    dbms_advisor.set_task_parameter(name, 'END_SNAPSHOT', &&awr_end_snap);
-    dbms_advisor.set_task_parameter(name, 'INSTANCE', &&awr_inst_num);
-    dbms_advisor.set_task_parameter(name, 'DB_ID', &&awr_dbid);
-    dbms_advisor.execute_task(name);
-  exception
-    when others then
-      null;
-  end;
-  select dbms_advisor.get_task_report(name, 'TEXT', 'TYPICAL')
-    into addmrpt
-    from sys.dual;
-  dbms_output.enable(20000000000);
-  for i in 1 .. (DBMS_LOB.GETLENGTH(addmrpt) / 2000 + 1) loop
-    dbms_output.put_line(substr(addmrpt, 1900 * (i - 1) + 1, 1900));
-  end loop;
-  dbms_output.put_line('');
-  begin
-    dbms_advisor.delete_task(name);
-  exception
-    when others then
-      null;
-  end;
-end;
-/
-spool off;
+-- column addmfile_name new_value addmfile
+-- select 'addmrpt_' || to_char(&&awr_inst_num) || '_' || to_char(&&awr_begin_snap) || '_' || to_char(&&awr_end_snap) addmfile_name from dual;
+-- set serveroutput on
+-- spool &&addmfile..txt
+-- declare
+--   id          number;
+--   name		  varchar2(200) := '';
+--   descr       varchar2(500) := '';
+--   addmrpt     clob;
+--   v_ErrorCode number;
+-- BEGIN
+--   name := '&&addmfile';
+--   begin
+--     dbms_advisor.create_task('ADDM', id, name, descr, null);
+--     dbms_advisor.set_task_parameter(name, 'START_SNAPSHOT', &&awr_begin_snap);
+--     dbms_advisor.set_task_parameter(name, 'END_SNAPSHOT', &&awr_end_snap);
+--     dbms_advisor.set_task_parameter(name, 'INSTANCE', &&awr_inst_num);
+--     dbms_advisor.set_task_parameter(name, 'DB_ID', &&awr_dbid);
+--     dbms_advisor.execute_task(name);
+--   exception
+--     when others then
+--       null;
+--   end;
+--   select dbms_advisor.get_task_report(name, 'TEXT', 'TYPICAL')
+--     into addmrpt
+--     from sys.dual;
+--   dbms_output.enable(20000000000);
+--   for i in 1 .. (DBMS_LOB.GETLENGTH(addmrpt) / 2000 + 1) loop
+--     dbms_output.put_line(substr(addmrpt, 1900 * (i - 1) + 1, 1900));
+--   end loop;
+--   dbms_output.put_line('');
+--   begin
+--     dbms_advisor.delete_task(name);
+--   exception
+--     when others then
+--       null;
+--   end;
+-- end;
+-- /
+-- spool off;
 
 exit;
