@@ -90,6 +90,9 @@ prompt <li>
 prompt <a href="#dbspace">数据库空间管理</a>
 prompt </li>
 prompt <li>
+prompt <a href="#logfileinfo">日志信息</a>
+prompt </li>
+prompt <li>
 prompt <a href="#dbschema">数据库对象管理</a>
 prompt </li>
 prompt <li>
@@ -341,8 +344,8 @@ end;
 -- end;
 prompt <p>ASM磁盘信息
 break on GROUP_NAME skip 1;
-compute sum label "Total ->" of "TOTAL(G)" on GROUP_NAME;
-compute sum label "Total ->" of "FREE(G)" on GROUP_NAME;
+compute sum label "Total --------->" of "TOTAL(G)" on GROUP_NAME;
+compute sum label "Total --------->" of "FREE(G)" on GROUP_NAME;
 column "TOTAL(G)" for 999999.999;
 column "FREE(G)" for 999999.999;
 select g.NAME "GROUP_NAME",
@@ -413,6 +416,7 @@ end;
 
 --日志组大小
 prompt <p>日志信息
+column "SIZE(G)" for 999999.999;
 select group#,
        bytes/1024/1204 "SIZE(G)",
        members,
@@ -581,11 +585,12 @@ where  owner not in ('SYSTEM','SYSMAN','SYS','CTXSYS','MDSYS','OLAPSYS','WMSYS',
 
 --TOP 10 对象大小
 prompt <p>对象大小Top 10
+column object_size heading "SIZE(G)" for 999999.999;
 select *
   from (select owner,
                segment_name,
                segment_type,
-               round(sum(bytes) / 1024 / 1024) object_size
+               round(sum(bytes) / 1024 / 1024 / 1024) object_size
           from DBA_segments
          group by owner, segment_name, segment_type
          order by object_size desc)
@@ -594,6 +599,8 @@ where rownum <= 10
 
 --回收站情况(大小及数量）
 prompt <p>回收站信息
+column recyb_size heading "SIZE(G)" for 999999.999;
+column recyb_cnt heading "COUNT";
 select *
   from (select SUM(BYTES) / 1024 / 1024 / 1024 as recyb_size
           from DBA_SEGMENTS
@@ -640,12 +647,26 @@ where t.SESSION_ADDR = s.SADDR
   and t.SQLHASH=sql.HASH_VALUE
 ;
 
+COLUMN temp_used FORMAT 9999999999
+SELECT NVL(s.username, '(background)') AS username,
+       s.sid,
+       s.serial#,
+       ROUND(ss.value/1024/1024, 2) AS temp_used_mb
+FROM   v$session s
+       JOIN v$sesstat ss ON s.sid = ss.sid
+       JOIN v$statname sn ON ss.statistic# = sn.statistic#
+WHERE  sn.name = 'temp space allocated (bytes)'
+AND    ss.value > 0
+ORDER BY 1
+;
+
 --表大小超过10GB未建分区的
 prompt <p>大于10G未建分区的表
+column object_size heading "SIZE(G)";
 select owner,
        segment_name,
        segment_type,
-       round(sum(bytes) / 1024 / 1024 / 1024,2) "SIZE(G)"
+       round(sum(bytes) / 1024 / 1024 / 1024,2) object_size
   from dba_segments
 where segment_type = 'TABLE'
   and bytes > 10*1024*1024*1024
