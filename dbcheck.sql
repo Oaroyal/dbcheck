@@ -324,7 +324,7 @@ from DBA_TEMP_FILES t
 order by tablespace_name
 ;
 begin
-  dbms_output.put_line('<p class="desc">注意未使用自动扩展的时间文件的使用情况');
+  dbms_output.put_line('<p class="desc">注意未使用自动扩展的数据文件的使用情况');
 end;
 /
 
@@ -407,7 +407,7 @@ GROUP BY SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH:MI:SS'),1,5)
 ORDER BY SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH:MI:SS'),1,5) DESC
 ;
 begin
-  dbms_output.put_line('<p class="desc">日志每小时切换次数越大说明该时间内约繁忙');
+  dbms_output.put_line('<p class="desc">日志每小时切换次数越大说明该时间内越繁忙');
 end;
 /
 
