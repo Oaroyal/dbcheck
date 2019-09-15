@@ -3,7 +3,7 @@ def script_version="0.1"
 def email="john-wong@outlook.com"
 def tel='18059869210'
 
-set term off;
+set term on;
 set heading on;
 set verify off;
 set feedback off;
@@ -12,6 +12,7 @@ set pagesize 30000;
 set long 999999999;
 set longchunksize 999999;
 set serveroutput on;
+set SQLBLANKLINES off;
 clear break compute;
 ttitle off;
 btitle off;
@@ -75,12 +76,31 @@ prompt </head>
 prompt <body>
 
 prompt <h1 id='header'>数据库巡检报告 DB:&&db_name Inst:&&inst_name</h1>
-prompt <br>
-prompt <h3 id='dbinfo'>数据库基本配置</h3>
+
+--print table of contents
+prompt <h2>大纲</h2>
+prompt <div class="contents">
+prompt <ul>
+prompt <li>
+prompt <a href="#dbinfo">数据库基本信息</a>
+prompt </li>
+prompt <li>
+prompt <a href="#dbspace">数据库空间管理</a>
+prompt </li>
+prompt <li>
+prompt <a href="#dbschema">数据库对象管理</a>
+prompt </li>
+prompt <li>
+prompt <a href="#performance">性能相关</a>
+prompt </li>
+prompt </ul>
+prompt </div>
+
+prompt <h3 id='dbinfo'>数据库基本信息</h3>
 prompt <br>
 
 set markup html on spool on pre off entmap off;
-/* 数据库基本配置 */
+/* 数据库基本信息 */
 --database info
 prompt <p>数据库信息
 col name for a9;
