@@ -1,5 +1,5 @@
 def author="huangqw"
-def script_version="0.1"
+def script_version="0.2"
 def email="john-wong@outlook.com"
 def tel='18059869210'
 
