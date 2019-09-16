@@ -73,6 +73,7 @@ prompt table { margin-left:0;border-collapse:separate;width:600;font:8pt Arial,H
 prompt tr { border-collapse:separate;font:8pt Arial,Helvetica,sans-serif; border:0px;color:black; background:white;}
 prompt td { border-collapse:separate;font:8pt Arial,Helvetica,sans-serif; border:0px;color:black; background:#FFFFCC;}
 prompt p.desc {font: 8pt Arial,Helvetica,Geneva,sans-serif; color:Crimson; background:White;font-style:italic;}
+prompt div.contents {position:fixed; right:10; top:30}
 prompt </STYLE>
 prompt </head>
 prompt <body>
@@ -80,8 +81,8 @@ prompt <body>
 prompt <h1 id='header'>Health Check for DB:&&db_name Inst:&&inst_name</h1>
 
 --print table of contents
-prompt <h2>Table of Contents</h2>
 prompt <div class="contents">
+prompt <p>Table of Contents</p>
 prompt <ul>
 prompt <li>
 prompt <a href="#dbinfo">General Info</a>
