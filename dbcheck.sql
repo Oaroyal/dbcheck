@@ -792,7 +792,7 @@ select *
 ;
 
 /* 性能相关 */
-prompt <h3 id='performance'>性能相关</h3>
+prompt <h3 id='performance'>Performance Info</h3>
 --逻辑读最多
 prompt <p>Physical Read Top 10
 select *
