@@ -344,8 +344,8 @@ end;
 -- end;
 prompt <p>ASM Disks Info
 break on GROUP_NAME skip 1;
-compute sum label "Total --------->" of "TOTAL(G)" on GROUP_NAME;
-compute sum label "Total --------->" of "FREE(G)" on GROUP_NAME;
+compute sum label "Total -->" of "TOTAL(G)" on GROUP_NAME;
+compute sum label "Total -->" of "FREE(G)" on GROUP_NAME;
 column GROUP_NAME for a15;
 column "TOTAL(G)" for 999999.999;
 column "FREE(G)" for 999999.999;
