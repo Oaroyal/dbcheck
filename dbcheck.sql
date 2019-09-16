@@ -57,7 +57,7 @@ select 'dbcheck_&&db_name'||'_'||'&&check_date'||'_'||trim('&&inst_num') as fnam
 -- "
 spool &&fname..html
 set markup html off;
-prompt <html lang="zh-CN">
+prompt <html>
 prompt <head>
 prompt <TITLE>Health Check for DB:&&db_name Inst:&&inst_name</TITLE>
 prompt <meta author=&&author version=&&script_version email=&&email tel=&&tel/>
