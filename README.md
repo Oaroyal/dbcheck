@@ -2,7 +2,7 @@
 
 A database health check scripts
 
-éœ€è¦ä»¥sysdbaæƒé™æ‰§è¡Œï¼Œæˆ–è€…å…·å¤‡ä»¥ä¸‹æƒé™
+ĞèÒªÒÔsysdbaÈ¨ÏŞÖ´ĞĞ£¬»òÕß¾ß±¸ÒÔÏÂÈ¨ÏŞ
 dbms_workload_repository
 dbms_advisor
 DBMS_LOB
