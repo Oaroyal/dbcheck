@@ -415,7 +415,7 @@ ORDER BY SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH:MI:SS'),1,5) DESC
 prompt <p>Redo Log Info
 column "SIZE(G)" for 999999.999;
 select group#,
-       bytes/1024/1204 "SIZE(G)",
+       bytes/1024/1024/1024 "SIZE(G)",
        members,
        archived,
        status
