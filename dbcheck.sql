@@ -73,6 +73,7 @@ prompt table { margin-left:0;border-collapse:separate;width:600;font:8pt Arial,H
 prompt tr { border-collapse:separate;font:8pt Arial,Helvetica,sans-serif; border:0px;color:black; background:white;}
 prompt td { border-collapse:separate;font:8pt Arial,Helvetica,sans-serif; border:0px;color:black; background:#FFFFCC;}
 prompt p.desc {font: 8pt Arial,Helvetica,Geneva,sans-serif; color:Crimson; background:White;font-style:italic;}
+prompt div.contents {position:fixed; right:10; top:30}
 prompt </STYLE>
 prompt </head>
 prompt <body>
@@ -80,8 +81,8 @@ prompt <body>
 prompt <h1 id='header'>Health Check for DB:&&db_name Inst:&&inst_name</h1>
 
 --print table of contents
-prompt <h2>Table of Contents</h2>
 prompt <div class="contents">
+prompt <p>Table of Contents</p>
 prompt <ul>
 prompt <li>
 prompt <a href="#dbinfo">General Info</a>
@@ -413,13 +414,60 @@ ORDER BY SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH:MI:SS'),1,5) DESC
 
 --日志组大小
 prompt <p>Redo Log Info
-column "SIZE(G)" for 999999.999;
-select group#,
-       bytes/1024/1204 "SIZE(G)",
-       members,
-       archived,
-       status
-  from v$log
+column "SIZE(M)" for 999999.999;
+column THREAD# for 999999;
+select l.THREAD#,
+       l.group#,
+       l.bytes/1024/1024 "SIZE(M)",
+       l.members,
+       l.archived,
+       l.status
+  from v$log l
+order by l.THREAD#, l.GROUP#
+;
+select l.GROUP#,
+       l.TYPE,
+       l.MEMBER
+from v$logfile l
+order by l.TYPE,l.GROUP#
+;
+
+--Redo Log 切换时间
+prompt <p>Redo Log Switch Info
+with rec as (
+    select lh.THREAD#,
+           lh.SEQUENCE#,
+           lh.FIRST_TIME,
+           lh.next_time,
+           round((lh.next_time - lh.FIRST_TIME) * 24 * 60 * 60, 2) diff
+    from (select l.THREAD#,
+                 l.SEQUENCE#,
+                 l.FIRST_TIME,
+                 lag(l.FIRST_TIME, 1) over ( partition by l.THREAD# order by l.SEQUENCE# desc) next_time
+          from V$LOG_HISTORY l
+          where l.FIRST_TIME > sysdate - 10) lh
+    where lh.next_time is not null
+)
+select r.THREAD#,
+       min(r.diff) "MIN(S)",
+       max(r.diff) "MAX(S)",
+       round(avg(r.diff),1) "AVG(S)"
+from rec r
+group by r.THREAD#
+;
+
+begin
+  dbms_output.put_line('<p class="desc">The greater average switch time, the more busy database is');
+end;
+/
+
+--每日归档量
+prompt <p>Archived Log Size Per Day
+select to_char(trunc(a.FIRST_TIME), 'yyyy-mm-dd')                  "DAY",
+       round(sum(a.BLOCK_SIZE * a.BLOCKS) / 1024 / 1024 / 1024, 3) "SIZE(G)"
+from V$ARCHIVED_LOG a
+group by to_char(trunc(a.FIRST_TIME), 'yyyy-mm-dd')
+order by to_char(trunc(a.FIRST_TIME), 'yyyy-mm-dd') desc
 ;
 
 /* 对象信息 */
