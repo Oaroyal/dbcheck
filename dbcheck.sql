@@ -414,7 +414,7 @@ ORDER BY SUBSTR(TO_CHAR(first_time, 'MM/DD/RR HH:MI:SS'),1,5) DESC
 --日志组大小
 prompt <p>Redo Log Info
 column "SIZE(M)" for 999999.999;
-column THREAD# for 999999.99;
+column THREAD# for 999999;
 select l.THREAD#,
        l.group#,
        l.bytes/1024/1024 "SIZE(M)",
@@ -461,7 +461,7 @@ end;
 /
 
 --每日归档量
-prompt <p class="desc">Archived Log Size Per Day
+prompt <p>Archived Log Size Per Day
 select to_char(trunc(a.FIRST_TIME), 'yyyy-mm-dd')                  "DAY",
        round(sum(a.BLOCK_SIZE * a.BLOCKS) / 1024 / 1024 / 1024, 3) "SIZE(G)"
 from V$ARCHIVED_LOG a
